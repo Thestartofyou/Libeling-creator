@@ -1,0 +1,93 @@
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+
+# Function to log into LinkedIn
+def linkedin_login(driver, username, password):
+    driver.get("https://www.linkedin.com/login")
+    time.sleep(2)
+    
+    # Enter username
+    username_input = driver.find_element(By.ID, "username")
+    username_input.send_keys(username)
+    
+    # Enter password
+    password_input = driver.find_element(By.ID, "password")
+    password_input.send_keys(password)
+    
+    # Click login button
+    login_button = driver.find_element(By.XPATH, '//*[@type="submit"]')
+    login_button.click()
+    
+    time.sleep(3)
+
+# Function to search for jobs with "Easy Apply"
+def search_jobs(driver, job_title, location):
+    driver.get("https://www.linkedin.com/jobs/")
+    time.sleep(2)
+
+    # Find job title input and enter job title
+    search_job = driver.find_element(By.XPATH, '//input[@placeholder="Search job titles or companies"]')
+    search_job.send_keys(job_title)
+    
+    # Find location input and enter location
+    search_location = driver.find_element(By.XPATH, '//input[@placeholder="City, state, or zip code"]')
+    search_location.clear()
+    search_location.send_keys(location)
+    
+    # Press enter to search
+    search_location.send_keys(Keys.RETURN)
+    
+    time.sleep(3)
+
+# Function to apply to jobs with "Easy Apply"
+def apply_to_jobs(driver):
+    jobs = driver.find_elements(By.XPATH, '//button[contains(@class, "jobs-apply-button")]')
+    for job in jobs:
+        try:
+            # Click on each Easy Apply button
+            job.click()
+            time.sleep(2)
+
+            # Check for submit application button and click if present
+            submit_button = driver.find_element(By.XPATH, '//button[contains(@aria-label, "Submit application")]')
+            submit_button.click()
+            time.sleep(2)
+
+            # Close the application dialog
+            close_button = driver.find_element(By.XPATH, '//button[contains(@aria-label, "Dismiss")]')
+            close_button.click()
+            time.sleep(2)
+
+        except Exception as e:
+            print(f"Error applying to job: {e}")
+            continue
+
+# Main execution
+if __name__ == "__main__":
+    # Your LinkedIn credentials
+    username = "your_email"
+    password = "your_password"
+    
+    # Job search parameters
+    job_title = "Software Engineer"
+    location = "Boston, MA"
+
+    # Set up Chrome WebDriver
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+
+    try:
+        # Log into LinkedIn
+        linkedin_login(driver, username, password)
+
+        # Search for jobs with Easy Apply
+        search_jobs(driver, job_title, location)
+
+        # Apply to all found jobs
+        apply_to_jobs(driver)
+
+    finally:
+        driver.quit()
